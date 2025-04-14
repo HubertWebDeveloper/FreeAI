@@ -1,0 +1,394 @@
+<link rel="stylesheet" href="css/Images.css">
+
+<div class="card">
+  <div class="card-header">
+    <b>Creation Dream</b>
+    <a href="#" class="text-black">
+      <i class="bi bi-box-arrow-in-left float-end" style="font-size:18px"></i>
+    </a>
+  </div>
+
+  <div class="card-body">
+    <form action="" method="post" enctype="multipart/form-data" class="row">
+      <div class="col-md-6 text-center">
+        <div class="input-group mb-3">
+          <span class="input-group-text">Video Size:</span>
+          <select name="video_size" class="form-select" required>
+            <option value="1280:720">YouTube (16:9)</option>
+            <option value="1080:1920">TikTok (9:16)</option>
+            <option value="1080:1080">Instagram (1:1)</option>
+            <option value="640:480">Normal (4:3)</option>
+          </select>
+        </div>
+        <!-- <div class="input-group mb-3">
+          <span class="input-group-text">Reader Style:</span>
+          <select name="reader_style" class="form-select" required>
+            <option value="normal">Normal Reader</option>
+            <option value="storyteller">Storyteller Reader</option>
+            <option value="baby">Baby Reader</option>
+          </select>
+        </div> -->
+        <div class="mb-3">
+          <label for="exampleFormControlInput1" class="form-label">Character Names (comma-separated)</label>
+          <input type="text" class="form-control" name="character_names" placeholder="e.g., Character1, Character2, Character3" required>
+        </div>
+
+        <!-- Drop area and image previews -->
+        <div class="wrapper" id="drop-area">
+          <span class="text-muted" id="placeholder-text">Click, double-click, or drag images here</span>
+        </div>
+
+        <!-- Hidden input for files -->
+        <input id="default-btn" name="images[]" type="file" accept="image/*" hidden multiple>
+
+        <small class="form-text text-muted">Upload one image per character in the same order as listed above.</small>
+
+        <!-- Progress Bar -->
+        <div id="progress-container">
+          <div class="progress">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <p id="progress-text">Generating video...</p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 text-center">
+      <textarea class="wrapper" name="text" spellcheck="false" required placeholder="Type your story content with character names&#10;&#10;- Format each paragraph like: Character: Dialogue&#10;- One paragraph = One scene (image)&#10;- Separate paragraphs with a blank line&#10;&#10;Example:&#10;Character1: Hi there!&#10;&#10;Character2: Hello, Character1!"></textarea>
+
+        <div class="input-group mb-3">
+          <span class="input-group-text">Playback Speed:</span>
+          <select name="speed" id="speed" class="form-select">
+            <option value="0.5">0.5x - Baby Reader (Very Slow)</option>
+            <option value="0.75">0.75x - Beginner Reader (Slow)</option>
+            <option value="0.9">0.9x - Movie Reader (Cinematic Pace)</option>
+            <option value="1" selected>1x - Storyteller (Normal)</option>
+            <option value="1.2">1.2x - Emotion Reader (Excited & Intense)</option>
+            <option value="1.25">1.25x - Expressive Reader (Slightly Fast)</option>
+            <option value="1.5">1.5x - Enthusiastic Narrator (Fast)</option>
+            <option value="2">2x - Speed Reader (Very Fast)</option>
+          </select>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text">Language:</span>
+            <select name="language" class="form-select" required>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="hi">Hindi</option>
+                <option value="ar">Arabic</option>
+                <option value="sw">Swahili</option>
+                <!-- Add more languages as needed -->
+            </select>
+        </div>
+
+        <!-- <div class="input-group mb-3">
+            <span class="input-group-text">Voice:</span>
+            <select name="voice" class="form-select" required>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+            </select>
+        </div> -->
+
+        <button type="submit" class="btn btn-sm" name="convert" id="custom-btn-2">Generate Video</button>
+      </div>
+    </form>
+  </div>
+
+  <?php
+  $show_footer = false;
+  if (isset($_POST['convert'])) {
+    ini_set('max_execution_time', 0); // No time limit
+    set_time_limit(0);     
+
+    $text = trim($_POST['text']);
+    $language = $_POST['language'];
+    $voice = $_POST['voice'];
+    $speed = floatval($_POST['speed']);
+    $video_size = $_POST['video_size'];
+    $reader_style = $_POST['reader_style'] ?? 'normal';
+
+    $paragraphs = preg_split("/\n\s*\n+/", $text); // split on blank lines = paragraphs
+    $lines = array_map('trim', $paragraphs);
+
+    // Adjust speed based on reader style
+switch ($reader_style) {
+  case 'baby':
+      $speed *= 0.6; // baby = slower
+      break;
+  case 'storyteller':
+      $speed *= 0.85; // storyteller = slower but more dynamic
+      break;
+  case 'normal':
+  default:
+      // keep as-is
+      break;
+}
+
+    // Translate text if language is not English
+    if ($language !== 'en') {
+        foreach ($lines as $i => $line) {
+            $translated = file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=$language&dt=t&q=" . urlencode($line));
+            $result = json_decode($translated, true);
+            if (isset($result[0][0][0])) {
+                $lines[$i] = $result[0][0][0];
+            }
+        }
+    }
+
+    $upload_dir = __DIR__ . '/uploads/';
+    if (!file_exists($upload_dir)) mkdir($upload_dir, 0777, true);
+
+    //$images = $_FILES['images'];
+    //$image_paths = [];
+
+    $character_names = array_map('trim', explode(',', $_POST['character_names']));
+    $character_images = $_FILES['images'];
+
+    if (count($character_names) !== count($character_images['tmp_name'])) {
+        echo "<p style='color:red;'>Error: Number of character names and uploaded character images must match.</p>";
+        exit;
+    }
+
+    // foreach ($images['tmp_name'] as $index => $tmp_name) {
+    //     $name = preg_replace("/[^a-zA-Z0-9.\-_]/", "_", basename($images['name'][$index]));
+    //     $target_path = $upload_dir . time() . "_$index" . '_' . $name;
+    //     move_uploaded_file($tmp_name, $target_path);
+    //     $image_paths[] = $target_path;
+    // }
+    $character_map = []; // 'Alice' => 'uploads/character_Alice.jpg', etc.
+
+    foreach ($character_names as $index => $char_name) {
+        $safe_name = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $char_name);
+        $img_tmp = $character_images['tmp_name'][$index];
+        $img_name = "character_" . $safe_name . "_" . time() . ".jpg";
+        $img_path = $upload_dir . $img_name;
+
+        move_uploaded_file($img_tmp, $img_path);
+        $character_map[$char_name] = $img_path;
+    }
+
+    // if (count($image_paths) !== count($lines)) {
+    //     echo "<p style='color:red;'>Error: The number of images must match the number of text paragraphs.</p>";
+    //     exit;
+    // }
+
+    $video_parts = [];
+
+    // foreach ($lines as $i => $line) {
+    //     $img = $image_paths[$i];
+    //     $encoded = rawurlencode($line);
+    //     $audio_file = $upload_dir . "audio_$i.mp3";
+
+    //     // TTS download (language-aware)
+    //     $tts_url = "https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&q=$encoded&tl=$language&ttsspeed=$speed";
+    //     file_put_contents($audio_file, file_get_contents($tts_url));
+
+    //     // Estimate duration
+    //     $word_count = str_word_count($line);
+    //     $estimated_duration = max(1.5, $word_count / (2 * $speed));
+
+    //     // Actual duration
+    //     $cmd = "ffprobe -v error -show_entries format=duration -of csv=p=0 \"$audio_file\"";
+    //     $real_duration = floatval(shell_exec($cmd));
+    //     $duration = $real_duration > 0 ? $real_duration : $estimated_duration;
+
+    //     // Generate video
+    //     $video_part = $upload_dir . "part_$i.mp4";
+    //     $cmd = "ffmpeg -y -loop 1 -i \"$img\" -i \"$audio_file\" -c:v libx264 -t $duration -pix_fmt yuv420p -vf \"scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=black\" \"$video_part\"";
+    //     shell_exec($cmd);
+    //     $video_parts[] = $video_part;
+    // }
+    $story_lines = preg_split("/\n\s*\n+/", $text);
+    $video_parts = [];
+
+    foreach ($story_lines as $i => $paragraph) {
+        $paragraph = trim($paragraph);
+
+        preg_match('/^([a-zA-Z0-9_]+)\s*[:\-–]\s*(.+)$/', $paragraph, $matches);
+        if (!$matches) {
+            echo "<p style='color:red;'>Error: Each paragraph must start with character name and a colon (e.g., Alice: Hello there!).</p>";
+            exit;
+        }
+
+        $character = trim($matches[1]);
+        $dialogue = trim($matches[2]);
+
+        if (!isset($character_map[$character])) {
+            echo "<p style='color:red;'>Error: No image uploaded for character '$character'.</p>";
+            exit;
+        }
+
+        $img = $character_map[$character];
+        $encoded = rawurlencode($dialogue);
+        $audio_file = $upload_dir . "audio_$i.mp3";
+
+        // TTS Download
+        $tts_url = "https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&q=$encoded&tl=$language&ttsspeed=$speed";
+        file_put_contents($audio_file, file_get_contents($tts_url));
+
+        // Get duration
+        $cmd = "ffprobe -v error -show_entries format=duration -of csv=p=0 \"$audio_file\"";
+        $real_duration = floatval(shell_exec($cmd));
+        $duration = $real_duration > 0 ? $real_duration : 3;
+
+        $video_part = $upload_dir . "part_$i.mp4";
+        $cmd = "ffmpeg -y -loop 1 -i \"$img\" -i \"$audio_file\" -c:v libx264 -t $duration -pix_fmt yuv420p -vf \"scale={$video_size}:force_original_aspect_ratio=decrease,pad={$video_size}:(ow-iw)/2:(oh-ih)/2:color=black\" \"$video_part\"";
+        shell_exec($cmd);
+
+        $video_parts[] = $video_part;
+    }
+
+    // Merge videos
+    // $list_file = $upload_dir . "videos_to_merge.txt";
+    // $list_content = implode("\n", array_map(fn($part) => "file '$part'", $video_parts));
+    // file_put_contents($list_file, $list_content);
+
+    // $final_video = $upload_dir . "final_" . time() . ".mp4";
+    // shell_exec("ffmpeg -y -f concat -safe 0 -i \"$list_file\" -c copy \"$final_video\"");
+
+    // $video_url = 'Sections/uploads/' . basename($final_video);
+    // $show_footer = true;
+
+    // echo "<div class='text-center p-3'>";
+    // echo "<h4>Final Video:</h4>";
+    // echo "<video width='640' height='350' controls><source src='$video_url' type='video/mp4'></video><br>";
+    // echo "<a href='$video_url' id='download' class='btn btn-success mt-2' download>Download Video</a>";
+    // echo "</div>";
+    $list_file = $upload_dir . "videos_to_merge.txt";
+    $list_content = implode("\n", array_map(fn($part) => "file '$part'", $video_parts));
+    file_put_contents($list_file, $list_content);
+
+    $final_video = $upload_dir . "final_" . time() . ".mp4";
+    shell_exec("ffmpeg -y -f concat -safe 0 -i \"$list_file\" -c copy \"$final_video\"");
+
+    $video_url = 'Sections/uploads/' . basename($final_video);
+
+    echo "<div class='text-center p-3'>";
+    echo "<h4>Final Video:</h4>";
+    echo "<video width='640' height='350' controls><source src='$video_url' type='video/mp4'></video><br>";
+    echo "<a href='$video_url' id='download' class='btn btn-success mt-2' download>Download Video</a>";
+    echo "</div>";
+
+    // Clean up intermediate files except final video
+    $final_basename = basename($final_video);
+    foreach (glob($upload_dir . '*') as $file) {
+        if (basename($file) !== $final_basename) {
+            unlink($file);
+        }
+    }
+  }
+  ?>
+<!-- 
+<script src="js/Images.js"></script> -->
+
+<script>
+  const wrapper = document.getElementById("drop-area");
+  const defaultBtn = document.getElementById("default-btn");
+  const placeholderText = document.getElementById("placeholder-text");
+
+  function defaultBtnActive() {
+    defaultBtn.click();
+  }
+
+  // Click & double-click to open file selector
+  wrapper.addEventListener("click", defaultBtnActive);
+  wrapper.addEventListener("dblclick", defaultBtnActive);
+
+  defaultBtn.addEventListener("change", function () {
+    handleFiles(this.files);
+  });
+
+  wrapper.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    wrapper.classList.add("dragover");
+  });
+
+  wrapper.addEventListener("dragleave", () => {
+    wrapper.classList.remove("dragover");
+  });
+
+  wrapper.addEventListener("drop", (e) => {
+    e.preventDefault();
+    wrapper.classList.remove("dragover");
+    handleFiles(e.dataTransfer.files);
+  });
+
+  function handleFiles(files) {
+    [...files].forEach(file => {
+      if (!file.type.startsWith("image/")) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        // Hide placeholder on first image
+        placeholderText.style.display = 'none';
+
+        const previewBox = document.createElement("div");
+        previewBox.classList.add("preview");
+
+        const img = document.createElement("img");
+        img.src = e.target.result;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.classList.add("remove-btn");
+        removeBtn.innerHTML = "&times;";
+        removeBtn.onclick = () => {
+          wrapper.removeChild(previewBox);
+          if (wrapper.querySelectorAll('.preview').length === 0) {
+            placeholderText.style.display = 'inline';
+          }
+        };
+
+        previewBox.appendChild(img);
+        previewBox.appendChild(removeBtn);
+        wrapper.appendChild(previewBox);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Progress bar simulation on form submit
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const downloadBtn = document.getElementById('download');
+    const loadingBtn = document.getElementById('custom-btn-2');
+
+    if (form) {
+      form.addEventListener('submit', function () {
+
+        loadingBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...`;
+
+        progressContainer.style.display = 'block';
+        let progress = 0;
+
+        const interval = setInterval(() => {
+          if (progress >= 98) {
+            clearInterval(interval);
+          } else {
+            progress += Math.random() * 5;
+            progressBar.style.width = Math.min(progress, 98) + '%';
+          }
+        }, 500);
+      });
+    }
+
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', () => directDownload.click());
+      directDownload.click();
+      progressBar.style.width = '100%';
+      progressText.textContent = 'Done!';
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+  const autoDownloadBtn = document.getElementById('download');
+  if (autoDownloadBtn) {
+    // Delay a bit to let the DOM settle
+    setTimeout(() => {
+      autoDownloadBtn.click();
+    }, 1000); // Adjust the delay if needed
+  }
+});
+</script>
