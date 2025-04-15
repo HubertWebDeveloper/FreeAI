@@ -1,4 +1,80 @@
-<?php include('includes/header.php') ?>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    
+  </head>
+  <body class="bg-dark">
+      <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top"data-bs-theme="dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">HubCreation</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <marquee class="text-white">Lorem ipsum dolor sit amet consectetur adipisicing elit. <a href="#">Get Support</a></marquee>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/AI"><i class="bi bi-house-fill"></i></a>
+        </li>
+        <!-- <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#"><i class="bi bi-bell-fill text-danger"></i></a>
+        </li> -->
+        <li class="nav-item">
+          <a class="nav-link" href="#">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">SignUp</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<!--========================navbar=====================-->
+      
+<?php
+if(isset($_GET['section'])){
+    $section = $_GET['section'];
+}
+?>
+<div class="container-fluid row mb-3 mx-auto"style="margin-top:70px;height:85vh">
+    <!-- === sidebar section ==== -->
+    <div class="col-md-3 bg-dark shadow"style="border:2px solid white">
+        <ul class="nav flex-column text-center">
+            <li class="nav-item"style="background: <?php echo ($section == 'ctn') ? '#808b96' : 'transparent'; ?>">
+                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.php?section=ctn">
+                    <i class="bi bi-image-alt" style="font-size:28px;margin-right:10px"></i>
+                    <b>Generate Content Images</b> 
+                </a>
+            </li>
+            <hr class="text-light">
+            <li class="nav-item"style="background: <?php echo ($section == 'stry') ? '#808b96' : 'transparent'; ?>">
+                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.php?section=stry">
+                    <i class="bi bi-camera-reels-fill"style="font-size:28px;margin-right:10px"></i> 
+                    <b>Generate Story Teller</b> 
+                </a>
+            </li>
+            <hr class="text-light">
+            <li class="nav-item"style="background: <?php echo ($section == 'stryRd') ? '#808b96' : 'transparent'; ?>">
+                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.php?section=stryRd">
+                    <i class="bi bi-camera-reels-fill"style="font-size:28px;margin-right:10px"></i> 
+                    <b>Generate Story Teller</b> 
+                </a>
+            </li>
+            <hr class="text-light">
+            
+        </ul>
+    </div>
+    <!-- === body section ==== -->
+    <div class="col-md-9 shadow">
+<!--========================navbar=====================-->
+    <?php include('includes/sidebar.php') ?>
 <?php
 if(isset($_GET['section'])){
     $section = $_GET['section'];
@@ -17,4 +93,6 @@ if(isset($_GET['section'])){
 }
 ?>
 
-<?php include('includes/footer.php') ?>
+</script>
+  </body>
+</html>
