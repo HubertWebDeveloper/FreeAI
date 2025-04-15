@@ -48,14 +48,14 @@ if(isset($_GET['section'])){
     <div class="col-md-3 bg-dark shadow"style="border:2px solid white">
         <ul class="nav flex-column text-center">
             <li class="nav-item"style="background: <?php echo ($section == 'ctn') ? '#808b96' : 'transparent'; ?>">
-                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.php?section=ctn">
+                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.html?section=ctn">
                     <i class="bi bi-image-alt" style="font-size:28px;margin-right:10px"></i>
                     <b>Generate Content Images</b> 
                 </a>
             </li>
             <hr class="text-light">
             <li class="nav-item"style="background: <?php echo ($section == 'stry') ? '#808b96' : 'transparent'; ?>">
-                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.php?section=stry">
+                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.html?section=stry">
                     <i class="bi bi-camera-reels-fill"style="font-size:28px;margin-right:10px"></i> 
                     <b>Generate Story Teller</b> 
                 </a>
@@ -74,21 +74,26 @@ if(isset($_GET['section'])){
     <!-- === body section ==== -->
     <div class="col-md-9 shadow">
 <!--========================navbar=====================-->
-    <?php include('includes/sidebar.php') ?>
-<?php
-if(isset($_GET['section'])){
+    <?php
+if (isset($_GET['section'])) {
     $section = $_GET['section'];
 
-    if($section == "ctn"){
-        include('Sections/ImagesContent.php');
-    }else if($section == "stry"){
-        include('Sections/StoryContent.php');
-    }else if($section == "vds"){
-        include('Sections/VideoContent.php');
-    }else if($section == "stryRd"){
-        include('Sections/StoryReader.php');
-    }else{
-        include('error.html');
+    switch ($section) {
+        case "ctn":
+            include('Sections/ImagesContent.html');
+            break;
+        case "stry":
+            include('Sections/StoryContent.html');
+            break;
+        case "vds":
+            include('Sections/VideoContent.html');
+            break;
+        case "stryRd":
+            include('Sections/StoryReader.html');
+            break;
+        default:
+            include('error.html');
+            break;
     }
 }
 ?>
