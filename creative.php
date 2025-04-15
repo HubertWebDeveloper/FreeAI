@@ -48,26 +48,26 @@ if(isset($_GET['section'])){
     <div class="col-md-3 bg-dark shadow"style="border:2px solid white">
         <ul class="nav flex-column text-center">
             <li class="nav-item"style="background: <?php echo ($section == 'ctn') ? '#808b96' : 'transparent'; ?>">
-                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.php?section=ctn">
+                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.html?section=ctn">
                     <i class="bi bi-image-alt" style="font-size:28px;margin-right:10px"></i>
                     <b>Generate Content Images</b> 
                 </a>
             </li>
             <hr class="text-light">
             <li class="nav-item"style="background: <?php echo ($section == 'stry') ? '#808b96' : 'transparent'; ?>">
-                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.php?section=stry">
+                <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.html?section=stry">
                     <i class="bi bi-camera-reels-fill"style="font-size:28px;margin-right:10px"></i> 
                     <b>Generate Story Teller</b> 
                 </a>
             </li>
             <hr class="text-light">
-            <li class="nav-item"style="background: <?php echo ($section == 'stryRd') ? '#808b96' : 'transparent'; ?>">
+<!--             <li class="nav-item"style="background: <?php echo ($section == 'stryRd') ? '#808b96' : 'transparent'; ?>">
                 <a class="nav-link text-light" style="font-size:17px;" aria-current="page" href="creative.php?section=stryRd">
                     <i class="bi bi-camera-reels-fill"style="font-size:28px;margin-right:10px"></i> 
                     <b>Generate Story Teller</b> 
                 </a>
             </li>
-            <hr class="text-light">
+            <hr class="text-light"> -->
             
         </ul>
     </div>
